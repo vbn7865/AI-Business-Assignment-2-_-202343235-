@@ -4,23 +4,21 @@ import pandas as pd
 # ==========================================
 # 1. 페이지 초기 설정 및 UI 테마 적용
 # ==========================================
-# 눈이 편안한 세이지 그린 계열 포인트 컬러를 위한 커스텀 CSS 적용
 st.set_page_config(page_title="거북목·눈 피로 자가진단", page_icon="🐢", layout="centered")
 
+# 눈이 편안한 세이지 그린 계열 포인트 컬러 CSS 적용 (더 안정적인 방식 적용)
 st.markdown("""
     <style>
-    /* 결과 확인 버튼 색상 변경 (세이지 그린) */
-    div.stButton > button:first-child {
-        background-color: #9CA986; 
-        color: white;
-        border: none;
-        border-radius: 8px;
-        width: 100%;
-        font-weight: bold;
+    div[data-testid="stButton"] button {
+        background-color: #9CA986 !important; 
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-weight: bold !important;
     }
-    div.stButton > button:first-child:hover {
-        background-color: #829070;
-        color: white;
+    div[data-testid="stButton"] button:hover {
+        background-color: #829070 !important;
+        color: white !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -38,15 +36,16 @@ tab1, tab2 = st.tabs(["Step 1. 목·어깨 집중 체크 💆‍♂️", "Step 2
 
 # 질문과 슬라이더를 2단으로 배치하는 헬퍼 함수
 def create_question_row(question_text, options):
-    col1, col2 = st.columns([1, 1.2]) # 좌측은 질문, 우측은 슬라이더
+    col1, col2 = st.columns([1, 1.2]) # 좌측은 질문, 우측은 슬라이더 배치
     with col1:
         st.markdown(f"**{question_text}**")
     with col2:
-        # 슬라이더 값(옵션)을 선택받음. label_visibility를 숨겨 깔끔하게 구성
+        # 오류 방지를 위해 명시적인 key 값(question_text) 부여
         choice = st.select_slider(
             question_text, 
             options=options, 
-            label_visibility="collapsed"
+            label_visibility="collapsed",
+            key=question_text 
         )
     st.divider() # 문항 간 가로 구분선
     # 선택한 옵션의 인덱스 + 1을 점수로 반환 (1점 ~ 3점)
@@ -75,7 +74,8 @@ with tab2:
 # 3. 진단 결과 계산 및 시각화 (Metrics & Chart)
 # ==========================================
 st.write("") # 여백
-if st.button("🔍 진단 결과 확인하기"):
+# 버튼 전체 너비 사용(use_container_width) 적용
+if st.button("🔍 진단 결과 확인하기", use_container_width=True):
     # 점수 합산
     neck_score = n1 + n2 + n3 + n4
     eye_score = e1 + e2 + e3 + e4
@@ -102,14 +102,13 @@ if st.button("🔍 진단 결과 확인하기"):
     m2.metric(label="목·어깨 피로도 (12점 만점)", value=f"{neck_score}점")
     m3.metric(label="눈 피로도 (12점 만점)", value=f"{eye_score}점")
     
-    # 부위별 비교를 위한 막대그래프 (st.bar_chart)
-    # Streamlit의 기본 bar_chart를 활용해 목과 눈의 피로도를 나란히 비교
+    # 부위별 비교를 위한 막대그래프 (디자인 테마에 맞춰 컬러 지정)
     st.write("#### 부위별 피로도 비교")
     chart_data = pd.DataFrame(
         {"피로 점수": [neck_score, eye_score]},
         index=["목·어깨", "눈"]
     )
-    st.bar_chart(chart_data)
+    st.bar_chart(chart_data, color="#9CA986")
 
     # ==========================================
     # 4. 단계별 맞춤형 스트레칭 가이드 (Expander)
