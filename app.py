@@ -13,6 +13,33 @@ st.set_page_config(
     layout="centered"
 )
 
+# ==========================================
+# 비밀번호 잠금 기능 (에러 방지 안전 버전)
+# ==========================================
+def check_password():
+    if st.session_state.get("password_correct", False):
+        return True
+
+    st.markdown("### 🔒 접근 제한")
+    st.write("비밀번호를 입력하면 **행운 거북이 찌뿌둥 레벨 테스트**를 시작할 수 있습니다.")
+    pwd = st.text_input("비밀번호를 입력하세요", type="password")
+
+    if st.button("확인"):
+        try:
+            correct_pw = st.secrets["APP_PASSWORD"]
+        except Exception:
+            correct_pw = "pnumis"
+
+        if pwd == correct_pw:
+            st.session_state["password_correct"] = True
+            st.rerun()
+        else:
+            st.error("비밀번호가 틀렸습니다. 다시 확인해 주세요.")
+    return False
+
+if not check_password():
+    st.stop()
+
 # 설문 화면('survey') <-> 결과 화면('result') 전환용 상태 관리 (수정사항 4)
 if "view_mode" not in st.session_state:
     st.session_state.view_mode = "survey"
